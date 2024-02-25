@@ -1,156 +1,121 @@
-// isim email city yas rol 
-
-import {useState} from "react"; 
+import React, { useState } from "react";
 import storage from "../DataFile/Data";
 
+const MyForm = ({ onAdd, onUpdate, onDelete }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    role: "",
+    city: "",
+    age: "",
+  });
 
-const LoginForm = (props) => {
-//   let name = props.name;
-//   let email = props.email;
-//   let role = props.role;
-//   let city = props.city;
-//   let age = props.age;
+  const [displayMessage, setdisplayMessage] = useState("");
+  const [customerList, setCustomerList] = useState([]);
 
-const [name, setName] = useState(props.name || '' )
-const [email, setEmail] = useState( props.email || "")
-const [role, setRole] = useState(props.role || "")
-const [city, setCity] = useState(props.city || "")
-const [age, setAge] = useState(props.age || 0)
+  const handleInputChange = (evt) => {
+    const { name, value } = evt.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
+  const sendData = () => {
+    const { name, email, role, city, age } = formData;
+    const existingData = storage.readItem(email);
+    if (existingData) {
+      setdisplayMessage("Bu email ile zaten kayıt yapılmış.");
+    } else {
+      setdisplayMessage("Data Kaydedilirken Sabırlı Ol Lütfen");
+      storage.insertItem(name, email, city, age, role);
+      setCustomerList([...customerList, formData]);
+      onAdd(formData);
+      setdisplayMessage("Bienvenue a la Matrix!, kaydettim kaydettim rahat ol");
+      setTimeout(() => {
+        setdisplayMessage("");
+      }, 3000);
+    }
+  };
 
-const nameOnChange = (event) => {
-    //let nameCatcher = event.target.getAttribute("name")
-    setName(event.target.value)
-    console.log('name clicked');
-}
+  const deleteData = () => {
+    const { email } = formData;
+    setdisplayMessage("Data Silinirken Sabırlı Ol Lütfen");
+    setTimeout(() => {
+      storage.deleteItem(email);
+      onDelete(email); // Callback to delete data
+      setFormData({
+        name: "",
+        email: "",
+        role: "",
+        city: "",
+        age: "",
+      });
+      setdisplayMessage("Gelin olmuş gidiyorsun...");
+      setTimeout(() => {
+        setdisplayMessage("");
+      }, 3000);
+    }, 3000); // 3000 milliseconds = 3 seconds timeout
+  };
 
-const emailOnChange = (event) => {
-    //let emailCatcher = event.target.getAttribute("name")
-    setEmail(event.target.value)
-    console.log('email clicked');
-}
+  const updateData = () => {
+    const { email } = formData;
+    const existingData = storage.readItem(email);
+    if (existingData) {
+      setdisplayMessage("Data Güncellenirken Sabırlı Ol Lütfen");
+      storage.updateItem(email, formData);
+      onUpdate(formData);
+    } else {
+      setdisplayMessage("Email ile eşleşen bir kayıt bulunamadı.");
+    }
+    setTimeout(() => {
+      setdisplayMessage("Data Güncellendi sahip");
+      setTimeout(() => {
+        setdisplayMessage("");
+      }, 3000);
+    }, 3000);
+  };
 
-const roleOnChange = (event) => {
-    //let roleCatcher = event.target.getAttribute("name")
-    setRole(event.target.value)
-    console.log('role clicked');
-}
+  const myMetaForm = ["name", "email", "role", "city", "age"];
+  // const isDataPresent = Object.values(formData).some((value) => value !== ""); YAPAMADIM Bİ ALLAHIMM!!
+  const isDataPresent = !!storage.readItem(formData.email);
 
-const cityOnChange = (event) => {
-    //let cityCatcher = event.target.getAttribute("name")
-    
-    setCity(event.target.value)
-    console.log("City clicked")
-}
-
-const ageOnChange = (event) => {
-    //let ageCatcher = event.target.getAttribute("name")
-    
-    setAge(event.target.value)
-    console.log("Ageclicked")
-}
-
-
-const onSubmitFnc = (event) => {
-    event.preventDefault();
-    //check if the action insert or update
-  
-    // if (props.email) {
-    //   console.log("Performing update action...")
-    //   // UPDATE FONKSYON TETİLE
-    // } else {
-    //     console.log("Performing insert action...")
-    //   // INSERT FONKSYON TETİLE
-    // }
-
-    let result = sendData(name, email, role, city, age);
-    console.log(result);
-}
-
-
-
-
-const sendData = (name, email, role, city, age ) => {
-    console.log("Data akıyor")
-    //veri takımından insert functionı tetiklemelisin
-    storage.insertItem(name,email, city, age, role);
-    return true;
-}
-
-return (
-<>
-<form onSubmit={onSubmitFnc}>
-        <div>
-            <p>
-            <label>Name:
-                <input
-                
-                name="Name"
-                type ="string"
-                onChange={nameOnChange}
-                />
-                </label> 
-            </p>
+  return (
+    <form>
+      {myMetaForm.map((fieldName, index) => (
+        <div key={index}>
+          <p>
+            <label>
+              {fieldName}:
+              <input
+                name={fieldName}
+                type={
+                  typeof formData[fieldName] === "number" ? "number" : "text"
+                }
+                value={formData[fieldName]}
+                onChange={handleInputChange}
+              />
+            </label>
+          </p>
         </div>
-        <div>
-            <p>
-            <label>Email:
-                <input
-                
-                name="Email"
-                type ="string"
-                onChange={emailOnChange}
-            
-                
-                />
-                </label> 
-            </p>
-        </div>
-        <div>
-            <p>
-            <label>Role:
-                <input
-                
-                name="Role"
-                type ="string"
-                onChange={roleOnChange}
-                
-                
-                />
-                </label> 
-            </p>
-        </div>
-        <div>
-            <p>
-            <label>City:
-                <input
-                
-                name="City"
-                type ="string"
-                onChange={cityOnChange}
-                
-                />
-                </label> 
-            </p>
-        </div>
-        <div>
-            <p>
-            <label>Age:
-                <input
-                
-                name="Age"
-                type ="number"
-                onChange={ageOnChange}
-                
-                />
-                </label> 
-            </p>
-        </div>
-        <button>Kaydet</button>
-</form>
-</>
-)
-}
+      ))}
+      {isDataPresent ? (
+        <>
+          <button type="button" onClick={updateData}>
+            Güncelle
+          </button>
+          <button type="button" onClick={deleteData}>
+            Sil
+          </button>
+        </>
+      ) : (
+        <button type="button" onClick={sendData}>
+          Kaydet
+        </button>
+      )}
+      <div>{displayMessage}</div>
+    </form>
+  );
+};
 
-
-export default LoginForm;
+export default MyForm;
